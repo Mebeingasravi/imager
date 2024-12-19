@@ -7,6 +7,8 @@ const sharp = require('sharp')
 
 app.use(express.urlencoded({ extented: false }))
 
+const { resizeImage } = require('./controller/img/resizer')
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads')
@@ -18,7 +20,7 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage });
-app.post("/resize-image", upload.array('files', 12), async (req, res, next) => {
+app.post("/resize-image", upload.array('files', 200), async (req, res, next) => {
     const { height, width, format } = req.params;
     try {
         if (!req.files || req.files.length === 0) return res.status(400).send("No files uploaded.");
