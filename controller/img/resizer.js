@@ -1,35 +1,20 @@
-const fs = require('fs')
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const sharp = require('sharp')
-const path = require('path')
-
-exports.resizeImage1 = async (req, res) => {
-    const { width, height, format } = req.query;
-    console.log('files ', req.file)
-    try {
-        const imgs = req.files.map(async (file) => {
-            const outputPath = path.join('uploads', `${Date.now()}-${file.filename}.${format}`);
-            console.log("file ", file)
-            await sharp(file.path)
-                // .resize(parseInt(width), parseInt(height))
-                .resize(parseInt(800), parseInt(529))
-                .toFormat(format)
-                .file(outputPath)
-            fs.unlinkSync(file.path);
-            return outputPath;
-        })
-        res.json({ imgs: imgs })
-    } catch (err) {
-        console.log("err : ", err)
-    }
-
-}
-
 
 exports.resizeImage = async (req, res, next) => {
-    const { height, width, format } = req.params;
+    const { height, width, format } = req.query;
+    console.log('query ', req.query)
+
+    // console.log("validation ", validateParams(height, width, format))
+
+
+    // if (!validateParams(height, width, format)) return res.status(400).send("any of the height, width, format is missing")
+
     try {
         if (!req.files || req.files.length === 0) return res.status(400).send("No files uploaded.");
-        const uploadPath = path.join(__dirname, 'uploads');
+        const uploadPath = path.join(process.cwd(), 'uploads');
 
         await Promise.all(
             req.files.map(async (file, index) => {
@@ -38,8 +23,9 @@ exports.resizeImage = async (req, res, next) => {
                 const savePath = path.join(uploadPath, uniqueFilename);
                 try {
                     await sharp(file.path)
-                        .resize(4032, 3024)
-                        .toFormat('webp').toFile(savePath)
+                        .resize(parseInt(width), parseInt(height))
+                        .toFormat(format)
+                        .toFile(savePath)
 
                     console.log(`Image successfully resized and saved to: ${savePath}`);
                 } catch (err) {
@@ -53,4 +39,22 @@ exports.resizeImage = async (req, res, next) => {
         console.error("Error during file upload:", err);
         res.status(500).send("Internal Server Error");
     }
+}
+
+function validateParams(height, width, format) {
+    // if(typeof height !== )
+    height = parseInt(height)
+    width = Number(width)
+
+    console.log(height, width, format)
+    const keywords = ["jpeg", "png", "webp", "avif", "tiff", "gif", "svg", "jp2", "dzi", "image", "resize", "thumbnail", "crop", "embed", "libvips", "vips"];
+    try {
+
+        if (keywords.includes(format) && height_width_size()) return true
+
+        function height_width_size() {
+            const min = 200, max = 2000
+            if (width >= min && width <= max && height >= min && height <= max) return true
+        }
+    } catch (err) { console.log('err ', err) }
 }

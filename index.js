@@ -20,35 +20,7 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage });
-app.post("/resize-image", upload.array('files', 200), async (req, res, next) => {
-    const { height, width, format } = req.params;
-    try {
-        if (!req.files || req.files.length === 0) return res.status(400).send("No files uploaded.");
-        const uploadPath = path.join(__dirname, 'uploads');
-
-        await Promise.all(
-            req.files.map(async (file, index) => {
-                console.log(file)
-                const uniqueFilename = `resized ${Date.now()}_${index}_${file.originalname.split(".")[0]}.webp`;
-                const savePath = path.join(uploadPath, uniqueFilename);
-                try {
-                    await sharp(file.path)
-                        .resize(4032, 3024)
-                        .toFormat('webp').toFile(savePath)
-
-                    console.log(`Image successfully resized and saved to: ${savePath}`);
-                } catch (err) {
-                    console.log("err : ", err)
-                }
-            })
-        )
-
-        res.json({ imgs: req.files });
-    } catch (err) {
-        console.error("Error during file upload:", err);
-        res.status(500).send("Internal Server Error");
-    }
-});
+app.post("/resizeImage", upload.array('files', 200), resizeImage);
 
 app.listen(3000, () => {
     console.log('Server running on port 3000');
